@@ -1,5 +1,4 @@
-```groovy
-pipeline {
+groovy pipeline {
     agent any
 
     options {
@@ -240,5 +239,5 @@ pipeline {
         }
     }
 }
-```
+
 
