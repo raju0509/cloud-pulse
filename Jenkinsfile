@@ -53,7 +53,8 @@ pipeline {
             }
         }
 
-        stage('Backend Tests') {
+
+    stage('Backend Tests') {
             steps {
                 sh '''
                     set -eu
@@ -66,7 +67,8 @@ pipeline {
                     python -m pip install --upgrade pip
                     pip install -r backend/requirements.txt
 
-                    pytest -v backend/tests
+                    export PYTHONPATH="$WORKSPACE/backend"
+                    python -m pytest -v backend/tests
                 '''
             }
         }
