@@ -194,7 +194,7 @@ pipeline {
                         ssh -o BatchMode=yes \
                             -o StrictHostKeyChecking=yes \
                             "$DEPLOY_USER@$DEPLOY_HOST" \
-                            "sudo aws ecr get-login-password --region '$AWS_REGION' | sudo docker login --username AWS --password-stdin '$ECR_REGISTRY'"
+                            "aws ecr get-login-password --region '$AWS_REGION' | sudo docker login --username AWS --password-stdin '$ECR_REGISTRY'"
 
                         ssh -o BatchMode=yes \
                             -o StrictHostKeyChecking=yes \
@@ -209,7 +209,7 @@ pipeline {
                         ssh -o BatchMode=yes \
                             -o StrictHostKeyChecking=yes \
                             "$DEPLOY_USER@$DEPLOY_HOST" \
-                            "sudo docker compose -f '$DEPLOY_DIR/docker-compose.prod.yaml' ps"
+                            "cd '$DEPLOY_DIR' && sudo env BACKEND_IMAGE='$BACKEND_IMAGE:$BUILD_NUMBER' FRONTEND_IMAGE='$FRONTEND_IMAGE:$BUILD_NUMBER' docker compose --env-file .env -f docker-compose.prod.yaml ps"
                     '''
                 }
             }
