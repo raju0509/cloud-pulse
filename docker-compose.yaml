@@ -1,0 +1,57 @@
+services:
+  database:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-cloudpulse}
+      POSTGRES_USER: ${POSTGRES_USER:-cloudpulse_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: ./backend
+    image: ${BACKEND_IMAGE:-cloudpulse-backend:local}
+    restart: unless-stopped
+    environment:
+      APP_ENV: production
+      DATABASE_HOST: database
+      DATABASE_PORT: "5432"
+      DATABASE_NAME: ${POSTGRES_DB:-cloudpulse}
+      DATABASE_USER: ${POSTGRES_USER:-cloudpulse_user}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    expose:
+      - "8000"
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+    image: ${FRONTEND_IMAGE:-cloudpulse-frontend:local}
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
